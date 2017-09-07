@@ -26,12 +26,14 @@ def getHtml(request_url):
 #     request=urllib.request.Request(request_url,None,headers=urlopenheader)
 #     response=urllib.request.urlopen(request)
     page = requests.get(request_url, headers=headers)
+    page.encoding='utf-8'
     html_contents = page.text
+    status_code=page.status_code
     html = html_contents
     time.sleep(0.01)
 #     print(type(html))
 #     html = response.read().decode('utf8')
-    return html
+    return status_code, html
 
 
 def download(download_info):

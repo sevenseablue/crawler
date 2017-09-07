@@ -39,7 +39,7 @@ class ximalaya():
         self._soundsFileWriter = open(self._soundsFile, 'wb')
 
     def getSoundInfo(self, url):
-        html = utils.getHtml(url)
+        status_code, html = utils.getHtml(url)
         # {"id":23787900,"play_path_64":"http://audio.xmcdn.com/group18/M00/A0/A0/wKgJKlgMtQ6DlIHKADIcioqs3bY923.m4a", \
         # "play_path_32":"http://audio.xmcdn.com/group20/M02/A1/EA/wKgJJ1gMtt-Bgw_tABMrJkgLTWU302.m4a",
         # "play_path":"http://audio.xmcdn.com/group18/M00/A0/A0/wKgJKlgMtQ6DlIHKADIcioqs3bY923.m4a",
@@ -68,7 +68,7 @@ class ximalaya():
 
     def processOneBook(self, book):
         url1 = book[1]
-        html = utils.getHtml(url1)
+        status_code, html = utils.getHtml(url1)
 
         pages = re.findall("data-page='(\d+)'", html)
         if pages == None or len(pages) == 0:
@@ -81,7 +81,7 @@ class ximalaya():
         # print(pages)
         for i in range(1, pagesMax + 1):
             url2 = url1 + "?page=%s" % i
-            html = utils.getHtml(url2)
+            status_code, html = utils.getHtml(url2)
 
             sound_ids_strings = re.findall(
                 r"(?ms)\<div class\=\"personal_body\" sound_ids=\"([0-9,]+)\">",
@@ -111,7 +111,7 @@ class ximalaya():
         self._booksFileWriter.flush()
 
     def processOnePage(self, url):
-        html = utils.getHtml(url)
+        status_code, html = utils.getHtml(url)
         bookes = re.findall(
             r"(?ms)\<div class\=\"discoverAlbum_item\" album_id\=\"([0-9]+)\"\>.*?\<a href\=\"([^\"]+)\".*?\<img src\=\"([^\"]+)\".*?title\=\"([^\"]+)\"",
             html)
@@ -122,7 +122,7 @@ class ximalaya():
 
 
     def processYouShengShu(self, url="http://www.ximalaya.com/dq/book/"):
-        html = utils.getHtml(url)
+        status_code, html = utils.getHtml(url)
         # pages = re.findall("unencode\>([0-9]+)\<\/a\>", html)
         pages = re.findall("data-page='(\d+)'", html)
         pagesInt = utils.str_list_to_int(pages)

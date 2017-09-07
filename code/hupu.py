@@ -4,129 +4,75 @@ import re
 import json
 import ast
 
-import utils
+import snownlp
+from bs4 import BeautifulSoup
+import datetime
 
+import utils
+import chat_utils
+import date_utils
 
 class hupu():
     def __init__(self, data_dir, download=False):
-        self._data_dir = data_dir
-        # self._book_d = {}
-        # self._sound_d = {}
-        # self._soundDataDir = data_dir + "/hupu"
-        # utils.mkdir_p(self._soundDataDir)
-        # self._download = download
-        #
-        # self._booksFile = data_dir + "/books.txt"
-        # f_b = open(self._booksFile, 'r', encoding="utf-8")
-        # for line in f_b:
-        #     line = line.strip()
-        #     if line.startswith("["):
-        #         list1 = ast.literal_eval(line)
-        #         self._book_d[list1[0]] = list1
-        # f_b.close()
-        #
-        # self._soundsFile = data_dir + "/sounds.txt"
-        # f_s = open(self._soundsFile, 'r', encoding="utf-8")
-        # for line in f_s:
-        #     line = line.strip()
-        #     if line.startswith("["):
-        #         list1 = ast.literal_eval(line)
-        #         self._sound_d[list1[0]] = list1
-        # f_s.close()
-        #
-        #
-        # self._booksFileWriter = open(self._booksFile, 'wb')
-        # self._soundsFileWriter = open(self._soundsFile, 'wb')
-
-    def getSoundInfo(self, url):
-        html = utils.getHtml(url)
-        # {"id":23787900,"play_path_64":"http://audio.xmcdn.com/group18/M00/A0/A0/wKgJKlgMtQ6DlIHKADIcioqs3bY923.m4a", \
-        # "play_path_32":"http://audio.xmcdn.com/group20/M02/A1/EA/wKgJJ1gMtt-Bgw_tABMrJkgLTWU302.m4a",
-        # "play_path":"http://audio.xmcdn.com/group18/M00/A0/A0/wKgJKlgMtQ6DlIHKADIcioqs3bY923.m4a",
-        # "duration":405,"title":"\u5f15\u5b50","nickname":"\u60f3\u5f55\u975e\u975e\u9891\u9053",
-        # "uid":44083167,"waveform":"group17/M02/A2/4E/wKgJKVgMtVOznUBjAAAKPZCIi5Y7922.js",
-        # "upload_id":"u_23871683","cover_url":"http://fdfs.xmcdn.com/group19/M06/A1/DB/wKgJK1gMtOmTOF5RAAGJtVGwTuQ436.jpg",
-        # "cover_url_142":"http://fdfs.xmcdn.com/group19/M06/A1/DB/wKgJK1gMtOmTOF5RAAGJtVGwTuQ436_web_large.jpg",
-        # "formatted_created_at":"10\u670823\u65e5 21:03","is_favorited":false,
-        # "play_count":114718,"comments_count":109,"shares_count":0,"favorites_count":335,
-        # "album_id":5613404,"album_title":"\u65e0\u7f6a\u8fa9\u62a4\u2014\u5f20\u6d77\u751f","intro":null,
-        # "have_more_intro":false,"time_until_now":"8\u6708\u524d","category_name":"book",
-        # "category_title":"\u6709\u58f0\u4e66","played_secs":null,"is_paid":false,"is_free":null,
-        # "price":null,"discounted_price":null}
-        j = json.loads(html)
-        results = []
-        for k in ["id", "play_path_64", "duration", "title", "uid", "play_count", "comments_count", "favorites_count",
-                  "album_id", "album_title"]:
-            results.append(j.get(k, ""))
-        results.append(html)
-        return results
-
-    def download_sound(self, url):
-        utils.download_original_name((url, self._soundDataDir))
-
-
+        self._data_dir = data_dir + "/hupu"
+        dti = date_utils.dt_dt_to_stri(datetime.datetime.now())
+        self._post_log = self._data_dir + "/post_%s.txt" % (dti)
+        self._post_writer = open(self._post_log, 'w', encoding="utf8")
 
     def processOnePost(self, book):
-        url1 = book[1]
-        html = utils.getHtml(url1)
+        url1 = "https://bbs.hupu.com/%s.html" % (book[0])
+        status_code, html = utils.getHtml(url1)
+        print("status_code, ", status_code)
+        if status_code != 200:
+            return
 
-        pages = re.findall("data-page='(\d+)'", html)
-        if pages == None or len(pages) == 0:
-            pageMax = 1
-        else:
-            pagesInt = utils.str_list_to_int(pages)
-            pagesMax = max(pagesInt)
+        soup = BeautifulSoup(html, "lxml")
+        chucuole=soup.find("h4")
+        if chucuole!= None:
+            print(chucuole.get_text())
+            if chucuole.get_text().startswith("\n嗯，出错了..."):
+                print("嗯，出错了...")
+                return
 
-        sound_ids_all = []
-        # print(pages)
-        for i in range(1, pagesMax + 1):
-            url2 = url1 + "?page=%s" % i
-            html = utils.getHtml(url2)
+        subhead = soup.find_all(attrs={"class": "subhead"})
+        subheadstr = subhead[0].get_text()
 
-            sound_ids_strings = re.findall(
-                r"(?ms)\<div class\=\"personal_body\" sound_ids=\"([0-9,]+)\">",
-                html)
-            if sound_ids_strings is not None and len(sound_ids_strings) == 1:
-                sound_ids = sound_ids_strings[0].strip(",").split(",")
-                sound_ids_int = utils.str_list_to_int(sound_ids)
-                sound_ids_all.extend(sound_ids_int)
+        quote_content = soup.find_all(attrs={"class": "quote-content"})
+        quote_content_str = quote_content[0].get_text()
 
-                for sound_id in sound_ids_int:
-                    url3 = "http://www.ximalaya.com/tracks/%s.json" % sound_id
-                    # print(url)
-                    sound_info = self.getSoundInfo(url3)
-                    soundUrl = sound_info[1]
-                    if self._download and not (sound_id in self._sound_d) :
-                        # print("downloading...")
-                        self.download_sound(soundUrl)
-                    self._sound_d[sound_id] = sound_info
-                    self._soundsFileWriter.write((str(sound_info) + "\n").encode("utf8"))
-                    self._soundsFileWriter.flush()
 
-            else:
-                print(book, " sound_ids_str is None")
-        book.append(sound_ids_all)
-        self._book_d[book[0]] = book
-        self._booksFileWriter.write((str(book)+"\n").encode("utf8"))
-        self._booksFileWriter.flush()
+
+        sn = snownlp.SnowNLP(subheadstr)
+        print(subheadstr)
+        print(sn.summary()[0], sn.sentiments, sn.keywords())
+        senti = ", 呵呵"
+        if sn.sentiments>=0.8:
+            senti = "happy， 哈哈"
+        if sn.sentiments<=0.2:
+            senti = "悲伤， 气愤"
+
+        reponse_str = "%s, %s" % (chat_utils.deepThought.get_response(sn.summary()[0]), senti)
+        self._post_writer.write("url\001%s\n" % url1)
+        self._post_writer.write("subhead\001%s\n" % subheadstr)
+        self._post_writer.write("quote_content\001%s\n" % quote_content_str)
+        self._post_writer.write("sn.summary()[0]\001%s\n" % sn.summary()[0])
+        self._post_writer.write("reponse_str\001%s\n" % reponse_str)
+
 
     def processOneList(self, url):
-        html = utils.getHtml(url)
-        # print(html)
+        status_code, html = utils.getHtml(url)
         bookes = re.findall(
             # r"(?ms)\<div class\=\"discoverAlbum_item\" album_id\=\"([0-9]+)\"\>.*?\<a href\=\"([^\"]+)\".*?\<img src\=\"([^\"]+)\".*?title\=\"([^\"]+)\"",
             r"""(?ms)\<div class\=\"titlelink box\".*?href\=\"\/(\d+)\.html\".*?\<span class\=\"ansour box\"\>(\d+)\&nbsp;\/\&nbsp;(\d+)\<\/span\>""",
             html)
         for book in bookes:
             print(book)
-            # book = list(book)
-            # self.processOneBook(book)
+            if book[0] != "15806550":
+                self.processOnePost(book)
 
 
     def processLists(self, url="https://bbs.hupu.com/bxj-postdate-%s"):
-
-
-        for i in range(1, 2):
+        for i in range(10, 11):
             urlstr = url % (i)
             print(urlstr)
             self.processOneList(urlstr)
@@ -136,10 +82,10 @@ class hupu():
 
 
     def closeFile(self):
-        self._booksFileWriter.close()
-        self._soundsFileWriter.close()
+        self._post_writer.close()
 
 
 if __name__ == "__main__":
     hupu1 = hupu(r"E:\github\crawler\data", download=False)
-    hupu1.processLists()
+    # hupu1.processLists()
+    hupu1.processOnePost(["20188481", 28, 30])

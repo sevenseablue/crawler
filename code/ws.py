@@ -15,7 +15,7 @@ class ws():
         dts = int(dt.timestamp())
         dte = int((dt + datetime.timedelta(seconds=86399)).timestamp())
         url = "https://api-prod.wallstreetcn.com/apiv1/finfo/calendars?start=%s&end=%s&stars" % (dts, dte)
-        car = utils.getHtml(url)
+        status_code, car = utils.getHtml(url)
         print(car)
         # j = json.loads(car)
         with open(r"E:\github\crawler\data\ws\carlendar\%s.txt" % dtstr[:10], 'w', encoding="utf8") as fw:
