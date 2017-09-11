@@ -189,8 +189,8 @@ class Gsxt(object):
         self.logger.debug(u"div style=%s", div_style)
 
         # 获取图像url
-        image_url = re.findall("background-image: url\(\"(.*)\"\); background-position: (.*)px (.*)px;",
-                               div_style)[0][0]
+        # image_url = re.findall("background-image: url\((.*?)\); background-position: ([\-0-9]+)px ([\-0-9]+)px;", div_style)
+        image_url = re.findall("background-image: url\(\"?(.*?)\"?\); background-position: ([\-0-9]+)px ([\-0-9]+)px;",  div_style)[0][0]
         # chrome浏览器得到的验证图是webp格式，其他浏览器都是jpg格式。
         image_url = image_url.replace("webp", "jpg")
         self.logger.debug(u"验证图像url: %s", image_url)
@@ -200,9 +200,9 @@ class Gsxt(object):
         location_list = list()
         for image_slice in image_slices:
             location = dict()
-            location['x'] = int(re.findall("background-image: url\(\"(.*)\"\); background-position: (.*)px (.*)px;",
+            location['x'] = int(re.findall("background-image: url\(\"?(.*)\"?\); background-position: (.*)px (.*)px;",
                                            image_slice.get_attribute('style'))[0][1])
-            location['y'] = int(re.findall("background-image: url\(\"(.*)\"\); background-position: (.*)px (.*)px;",
+            location['y'] = int(re.findall("background-image: url\(\"?(.*)\"?\); background-position: (.*)px (.*)px;",
                                            image_slice.get_attribute('style'))[0][2])
             self.logger.debug(location)
             location_list.append(location)
@@ -318,10 +318,10 @@ class Gsxt(object):
         length_9 = max(4, length_9)
         while length > 0:
             if length>length_6:
-                x = random.randint(3, 9)
+                x = random.randint(4, 9)
                 track.append([x, 0, random.random() * 0.0001 + 0.0001])
             elif length>length_9:
-                x = random.randint(1, 3)
+                x = random.randint(1, 4)
                 track.append([x, 0, random.random() * 0.001 + 0.0005])
             else:
                 x = 1
@@ -381,7 +381,7 @@ class Gsxt(object):
 
     def post_url(self, url, text):
         self.logger.info("wait 10 seconds.")
-        time.sleep(5.57)
+        time.sleep(1.57)
         # js = 'window.open("%s");' % url
         # self.browser.execute_script(js)
         # handles = self.browser.window_handles
@@ -392,7 +392,7 @@ class Gsxt(object):
         while  count>0:
             try:
                 self.browser.get(url)
-                time.sleep(10)
+                time.sleep(6)
                 # WebDriverWait(self.browser, 15).until(lambda the_driver: the_driver.find_element_by_id(
             # "atc_content").is_displayed())
                 if self.browser.find_element_by_id("atc_content").is_displayed():
@@ -409,24 +409,43 @@ class Gsxt(object):
             self.browser.find_element_by_id("atc_content").clear()
             time.sleep(1.3)
             self.browser.find_element_by_id("atc_content").send_keys(text)
-            time.sleep(1.3)
+            time.sleep(min(3.11, len(text)/5+1))
             self.browser.find_element_by_id("fastbtn").click()
-            time.sleep(3.1)
+            time.sleep(2.1)
         except:
             pass
+
+
+# gsxt = Gsxt("phantomjs")
+gsxt = Gsxt("chrome")
+gsxt.search("南方航空")
+def getHtml(url):
+    gsxt.browser.get(url)
+    time.sleep(1)
+    source_code = gsxt.browser.page_source
+    return source_code
+
+
+def post_url(url, post):
+    gsxt.post_url(url, post)
+    time.sleep(1)
 
 
 def main(file):
     logging.info("Start main process")
 
-    gsxt = Gsxt("chrome")
-    gsxt.search("南方航空")
-    # url = "https://bbs.hupu.com/20188477.html"
-    # post = "哈哈， 过去一个小时了， 挽个尊。 地图炮话题已经过时了。"
+    # gsxt = Gsxt("chrome")
+    # gsxt = Gsxt("phantomjs")
+    # gsxt.search("南方航空")
 
+    count = 0
     with open(file, 'r', encoding="utf8") as fo:
         flag = True
         for line in fo:
+            count += 1
+            print(line)
+            if count<276:
+                continue
             if line.startswith("#"):
                 continue
             if line.startswith("http"):

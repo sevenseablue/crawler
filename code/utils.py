@@ -36,6 +36,15 @@ def getHtml(request_url):
     return status_code, html
 
 
+
+
+
+import geetest_hupu
+
+def getHupuHtml(request_url):
+    return 200, geetest_hupu.getHtml(request_url)
+
+
 def download(download_info):
     (url, path) = download_info
     for i in range(3):
