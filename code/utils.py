@@ -39,10 +39,10 @@ def getHtml(request_url):
 
 
 
-import geetest_hupu
+# import geetest_hupu
 
-def getHupuHtml(request_url):
-    return 200, geetest_hupu.getHtml(request_url)
+# def getHupuHtml(request_url):
+#     return 200, geetest_hupu.getHtml(request_url)
 
 
 def download(download_info):
@@ -77,12 +77,12 @@ def download_original_name(download_info):
                 with open(file, 'wb') as f:
                     r.raw.decode_content = True
                     shutil.copyfileobj(r.raw, f)
-                    return 1
+                    return file
 
         except:
             time.sleep(1)
             pass
-    return 0
+    return file
 
 
 
@@ -115,3 +115,13 @@ def dt_dt_list(str1, str2):
     return dt_list
 
 # print(dt_dt_list("2017-07-09 23:59:59", "2017-07-13 23:59:59"))
+
+def main():
+    download_original_name(("https://castatic.fengkongcloud.com/cr/v1.0.1/set-000008-1.0.1-r1/9a0bf0b6ea89c0d6f48629a8fbfb2b11_fg.png", "E:\github\crawler\data"))
+    # for i in range(1, 17):
+    #     url = "http://cs231n.stanford.edu/slides/2017/cs231n_2017_lecture%s.pdf" % i
+    #     path = "e:/tech/courses/cs231n/2017"
+    #     download_original_name((url, path))
+
+if __name__ == "__main__":
+    main()

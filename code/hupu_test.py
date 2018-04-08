@@ -69,10 +69,13 @@ class hupu():
         status_code, html = utils.getHupuHtml(url)
         books = re.findall(
             # r"(?ms)\<div class\=\"discoverAlbum_item\" album_id\=\"([0-9]+)\"\>.*?\<a href\=\"([^\"]+)\".*?\<img src\=\"([^\"]+)\".*?title\=\"([^\"]+)\"",
-            r"""(?ms)\<div class\=\"titlelink box\".*?href\=\"\/(\d+)\.html\".*?\<span class\=\"ansour box\"\>(\d+)\&nbsp;\/\&nbsp;(\d+)\<\/span\>""",
+            r"""(?ms)\<div class\=\"titlelink box\".*?href\=\"\/(?P<url>\d+)\.html\".*?\<span class\=\"ansour box\"\>(?P<star>\d+)(\&nbsp;| )\/(\&nbsp;| )(?P<click>\d+)\<\/span\>""",
+            # r"""(?ms)\<div class\=\"titlelink box\".*?href\=\"\/(\d+)\.html\".*?\<span class\=\"ansour box\"\>(\d+) \/ (\d+)\<\/span\>""",
             html)
         soup = BeautifulSoup(html, 'lxml')
         soup.find_all(attrs={"class": "titlelink"})
+
+        print(html)
         print(books)
         for book in books:
             print(book)
@@ -81,7 +84,7 @@ class hupu():
 
 
     def processLists(self, url="https://bbs.hupu.com/bxj-postdate-%s"):
-        for i in range(7, 27):
+        for i in range(7, 8):
             urlstr = url % (i)
             print(urlstr)
             self.processOneList(urlstr)

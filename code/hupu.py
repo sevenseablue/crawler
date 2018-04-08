@@ -87,5 +87,5 @@ class hupu():
 
 if __name__ == "__main__":
     hupu1 = hupu(r"E:\github\crawler\data", download=False)
-    # hupu1.processLists()
-    hupu1.processOnePost(["20188481", 28, 30])
+    hupu1.processLists()
+    # hupu1.processOnePost(["20188481", 28, 30])

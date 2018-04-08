@@ -68,7 +68,7 @@ class Gsxt(object):
             # options.add_argument('--use-mock-keychain')
             options.add_argument("disable-infobars?")
             # self.browser = webdriver.Chrome(chrome_options=options)
-            self.browser = webdriver.Chrome(chrome_options=options)
+            self.browser = webdriver.Chrome("E:\github\crawler\code\chromedriver.exe", chrome_options=options)
         elif "firefox" == driver:
             self.browser = webdriver.Firefox()
             # raise Exception("请不要使用firefox，因为geckodriver暂时有点功能不全！凸(-｡-;")
@@ -165,6 +165,8 @@ class Gsxt(object):
             self.browser.find_element_by_id("J_submit").click()
             time.sleep(random.uniform(0.8, 1.5))
             # do sth
+            time.sleep(3.9)
+            self.browser.execute_script('window.stop()')
             pass
 
         pass
@@ -415,13 +417,29 @@ class Gsxt(object):
         except:
             pass
 
+def waiter(browser):
+    elements = browser.find_elements_by_class_name('the-class-i-want')
+    if len(elements) != 0:
+        return elements
+    return False
 
+
+from selenium.common.exceptions import TimeoutException
 # gsxt = Gsxt("phantomjs")
 gsxt = Gsxt("chrome")
 gsxt.search("南方航空")
 def getHtml(url):
-    gsxt.browser.get(url)
-    time.sleep(1)
+    gsxt.browser.set_page_load_timeout(10)
+    try:
+        gsxt.browser.get(url)
+        # WebDriverWait(gsxt.browser, 10).until(waiter)
+        time.sleep(3.5)
+        gsxt.browser.execute_script('window.stop()')
+        time.sleep(1.5)
+    except TimeoutException as e:
+        pass
+
+    # time.sleep(1.5)
     source_code = gsxt.browser.page_source
     return source_code
 
