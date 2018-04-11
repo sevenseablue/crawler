@@ -84,7 +84,7 @@ class Shumei(object):
             # options.add_argument('--use-mock-keychain')
             options.add_argument("disable-infobars?")
             # self.browser = webdriver.Chrome(chrome_options=options)
-            self.browser = webdriver.Chrome("E:\github\crawler\code\chromedriver.exe", chrome_options=options)
+            self.browser = webdriver.Chrome("E:\github\crawler\src\chromedriver.exe", chrome_options=options)
 
         elif "firefox" == driver:
             self.browser = webdriver.Firefox()
@@ -98,7 +98,7 @@ class Shumei(object):
         # 设置查询dom的隐式等待时间（影响find_element_xxx,find_elements_xxx）
         self.browser.implicitly_wait(10)
 
-    def get(self):
+    def login(self):
         """
         Args:
             keyword: 要搜索的关键字
@@ -109,9 +109,40 @@ class Shumei(object):
 
         # 打开搜索页面
         self.browser.get("https://passport.hupu.com/login")
-        for i in range(1):
-            self.logger.info("下载第%s次...", i)
-            self.browser.refresh()
+        time.sleep(1)
+
+        # <input autocomplete="off" type="text" name="username" placeholder="登录名/手机号/邮箱" data-rule="empty" data-name="帐号" id="J_username" tabindex="1">
+        self.browser.find_element_by_id("J_username").clear()
+        # <input autocomplete="off" type="password" name="password" placeholder="密码" data-rule="empty" data-name="密码" id="J_pwd" tabindex="2">
+        self.browser.find_element_by_id("J_pwd").clear()
+
+        account = []
+        try:
+            fileaccount = open("../data/hupu_account.txt")
+            accounts = fileaccount.readlines()
+            for acc in accounts:
+                account.append(acc.strip())
+            fileaccount.close()
+        except Exception as err:
+            print(err)
+            input("请正确在account.txt里面写入账号密码")
+            exit()
+        self.browser.find_element_by_id("J_username").send_keys(account[0])
+        self.browser.find_element_by_id("J_pwd").send_keys(account[1])
+
+        # WebDriverWait(self.browser, 30).until(lambda the_driver: the_driver.find_element_by_xpath(
+        #     "//div[@class='gt_slider_knob gt_show']").is_displayed())
+        # WebDriverWait(self.browser, 30).until(
+        #     lambda the_driver: the_driver.find_element_by_xpath("//div[@class='gt_cut_bg gt_show']").is_displayed())
+        # WebDriverWait(self.browser, 30).until(
+        #     lambda the_driver: the_driver.find_element_by_xpath("//div[@class='gt_cut_fullbg gt_show']").is_displayed())
+
+        time.sleep(2.3)
+
+        while True:
+        # for i in range(1):
+        # self.logger.info("下载第%s次...", i)
+        # self.browser.refresh()
             time.sleep(1.3)
             # <input autocomplete="off" type="text" name="username" placeholder="登录名/手机号/邮箱" data-rule="empty" data-name="帐号" id="J_username" tabindex="1">
             # self.browser.find_element_by_id("J_username").clear()
@@ -145,6 +176,7 @@ class Shumei(object):
             # 移动滑块
             result = self.simulate_drag(track)
             print(result)
+            time.sleep(1.1)
 
         # <input autocomplete="off" type="password" name="password" placeholder="密码" data-rule="empty" data-name="密码" id="J_pwd" tabindex="2">
 
@@ -242,18 +274,22 @@ class Shumei(object):
         time.sleep(0.2)
         ActionChains(self.browser).move_to_element(dom_div_slider).perform()
         # ActionChains(self.browser).
-
+        time.sleep(1)
         ActionChains(self.browser).click_and_hold(on_element=dom_div_slider).perform()
+        ActionChains(self.browser).move_by_offset(1, 0)
+        time.sleep(0.1)
 
         for x, y, z in track:
             self.logger.warn(u"位移: (%s, %s), 等待%s秒", x, y, z)
-            ActionChains(self.browser).move_to_element_with_offset(
-                to_element=dom_div_slider,
-                # xoffset=x + 22,
-                xoffset=x,
-                yoffset=1).perform()
+            # ActionChains(self.browser).move_to_element_with_offset(
+            #     to_element=dom_div_slider,
+            #     # xoffset=x + 22,
+            #     xoffset=x,
+            #     yoffset=1).perform()
+            ActionChains(self.browser).move_by_offset(x+22, 0)
             # ActionChains(self.browser).click_and_hold(on_element=dom_div_slider).perform()
             self.logger.warn(u"滑块当前位置: %s", dom_div_slider.location)
+            # time.sleep(1)
             time.sleep(z)
             pass
 
@@ -266,4 +302,4 @@ class Shumei(object):
         # return dom_div_gt_info.text
 
 shumei = Shumei("chrome")
-shumei.get()
+shumei.login()
